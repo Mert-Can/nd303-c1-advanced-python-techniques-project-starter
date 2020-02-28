@@ -1,4 +1,5 @@
 from models import OrbitPath, NearEarthObject
+import csv
 
 
 class NEODatabase(object):
@@ -16,6 +17,9 @@ class NEODatabase(object):
         """
         # TODO: What data structures will be needed to store the NearEarthObjects and OrbitPaths?
         # TODO: Add relevant instance variables for this.
+        self.filename = filename
+        self.NearEarthObjects = dict()
+        self.OrbitPaths = []
 
     def load_data(self, filename=None):
         """
@@ -33,6 +37,39 @@ class NEODatabase(object):
         filename = filename or self.filename
 
         # TODO: Load data from csv file.
+        with open(filename, 'r') as f:
+            csvfile = csv.DictReader(f, delimiter=",")
         # TODO: Where will the data be stored?
+            for row in csvfile:
+                orb_date = row['close_approach_date']
+                neo_name = row['name']
+
+                neoModel = {
+                    "id": row["neo_reference_id"],
+                    "name": row["name"], 
+                    "diameter_min_km": float(row["estimated_diameter_min_kilometers"]),
+                    "is_hazardous": row["is_potentially_hazardous_asteroid"] == "True",
+                    "orbits": []
+                    #"orbit_dates": []
+                    }
+
+                orbitPathModel = {
+                    "name" : row["name"],
+                    "distance": float(row["miss_distance_kilometers"]),
+                    "orbit_date": row["close_approach_date_full"]
+                }
+
+                orbitPath = OrbitPath(**orbitPathModel)
+
+                self.OrbitPaths.append(orbitPath)
+
+                neoObject = NearEarthObject(**neoModel)
+
+                if orb_date in self.NearEarthObjects:
+                    neoObject.update_orbits(orbitPath)
+                    self.NearEarthObjects[orb_date] += [neoObject]
+                else:
+                    neoObject.update_orbits(orbitPath)
+                    self.NearEarthObjects[orb_date] = [neoObject]
 
         return None
