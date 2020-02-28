@@ -13,7 +13,7 @@ solved Search requirement by creating two search instance methods in the NEOSeac
 
 
 ### Requirement 2
-***Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers.***
+Here we are required to ***Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers.***
 
 ### Requirement 3.  
 ***Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers that were hazardous.***
