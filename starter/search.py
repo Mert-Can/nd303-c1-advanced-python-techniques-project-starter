@@ -4,6 +4,7 @@ from enum import Enum
 from exceptions import UnsupportedFeature
 from models import NearEarthObject, OrbitPath
 
+import datetime
 
 class DateSearch(Enum):
     """
@@ -35,6 +36,12 @@ class Query(object):
         :param kwargs: dict of search query parameters to determine which SearchOperation query to use
         """
         # TODO: What instance variables will be useful for storing on the Query object?
+        self.number = kwargs['number']
+        self.date = kwargs['date'] if 'date' in kwargs else None
+        self.start_date = kwargs['start_date'] if 'start_date' in kwargs else None
+        self.end_date = kwargs['end_date']  if 'end_date' in kwargs else None
+        self.filters = kwargs['filter'] if 'filter' in kwargs else None
+        self.return_object = kwargs['return_object']
 
     def build_query(self):
         """
@@ -45,7 +52,14 @@ class Query(object):
         """
 
         # TODO: Translate the query parameters into a QueryBuild.Selectors object
+        if (self.date):
+            date_search = Query.DateSearch(DateSearch.equals,self.date)
+        else:
+            date_search = Query.DateSearch(DateSearch.between,[self.start_date, self.end_date])
 
+        query = Query.Selectors(date_search, self.number, self.filters, Query.ReturnObjects[self.return_object])
+
+        return query
 
 class Filter(object):
     """
@@ -106,6 +120,53 @@ class NEOSearcher(object):
         """
         self.db = db
         # TODO: What kind of an instance variable can we use to connect DateSearch to how we do search?
+        self.searchObject = []
+
+    # Search Object on a single date
+    def equals_search(self, date_search):
+        """
+        Instance method to perform DateSearch on the db to extract NearEarthObject 
+        from a single date.
+
+        Once the extraction is complete, return a list of the NearEarthObject obtained
+
+        :param date_search: str representing the date to search on
+        :return: list of NearEarthObjects
+        """
+        neo = {}
+        for n in self.db.NearEarthObjects[date_search]:
+            neo_name = n.name
+            if not neo_name in neo:
+                neo[neo_name] = n
+        return list(neo.values())
+
+    # Search Object between start and end dates
+    def between_search(self, date_search):
+        """
+        Instance method to perform DateSearch on the db to extract NearEarthObject 
+        from a a range of dates.
+
+        Once the extraction is complete, return a list of the NearEarthObject obtained
+
+        :param date_search: list containing a pair of dates to search from
+        :return: list of NearEarthObjects
+        """
+
+        neo = {}
+        a, b, c = tuple(date_search[0].split("-"))
+        d, e ,f = tuple(date_search[1].split("-"))
+                        
+        start_date = datetime.date(int(a),int(b),int(c))
+        end_date = datetime.date(int(d),int(e),int(f)+1)
+        daterange = [start_date + datetime.timedelta(days=x) for x in range(0, (end_date-start_date).days)]
+
+        for d in daterange:
+            d = d.strftime("%Y-%m-%d")
+            for n in self.db.NearEarthObjects[d]:
+                neo_name = n.name
+                if not neo_name in neo:
+                    neo[neo_name] = n
+        return list(neo.values())
 
     def get_objects(self, query):
         """
@@ -122,3 +183,12 @@ class NEOSearcher(object):
         # TODO: Write instance methods that get_objects can use to implement the two types of DateSearch your project
         # TODO: needs to support that then your filters can be applied to. Remember to return the number specified in
         # TODO: the Query.Selectors as well as in the return_type from Query.Selectors
+
+
+        if query.date_search.type == DateSearch.equals:
+            results = self.equals_search(query.date_search.values)
+            return results[0:query.number]
+
+        if query.date_search.type == DateSearch.between:
+            results = self.between_search(query.date_search.values)
+            return results[0:query.number]
