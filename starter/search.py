@@ -5,6 +5,7 @@ from exceptions import UnsupportedFeature
 from models import NearEarthObject, OrbitPath
 
 import datetime
+import operator
 
 class DateSearch(Enum):
     """
@@ -68,10 +69,16 @@ class Filter(object):
     """
     Options = {
         # TODO: Create a dict of filter name to the NearEarthObject or OrbitalPath property
+        "diameter"      : "diameter_min_km",
+        "is_hazardous"  : "is_hazardous",
+        "distance"      : "miss_distance_kilometers"
     }
 
     Operators = {
         # TODO: Create a dict of operator symbol to an Operators method, see README Task 3 for hint
+        ">" : operator.gt,
+        "=" : operator.eq,
+        ">=": operator.ge
     }
 
     def __init__(self, field, object, operation, value):
@@ -96,6 +103,20 @@ class Filter(object):
         """
 
         # TODO: return a defaultdict of filters with key of NearEarthObject or OrbitPath and value of empty list or list of Filters
+        defaultdict = {"NEO": [], "ORB": []}
+        NeoFilter = dict()
+        if filter_options == None or filter_options == []:
+            return defaultdict
+
+        else:
+            for filter_type in filter_options:
+                x = filter_type.split(":")
+
+                if x[0] in ["diameter", Filter.Options["is_hazardous"]]:
+                    defaultdict["NEO"].append(Filter(x[0], NearEarthObject, x[1], x[2]))
+                
+        return defaultdict
+                
 
     def apply(self, results):
         """
@@ -105,6 +126,12 @@ class Filter(object):
         :return: filtered list of Near Earth Object results
         """
         # TODO: Takes a list of NearEarthObjects and applies the value of its filter operation to the results
+        filtered_list = list()
+        if self.field == "diameter":
+            filtered_list = list(filter(
+                lambda neo: Filter.Operators[self.operation](getattr(neo,Filter.Options[self.field]), float(self.value)), results)
+            )
+            return filtered_list
 
 
 class NEOSearcher(object):
@@ -183,12 +210,20 @@ class NEOSearcher(object):
         # TODO: Write instance methods that get_objects can use to implement the two types of DateSearch your project
         # TODO: needs to support that then your filters can be applied to. Remember to return the number specified in
         # TODO: the Query.Selectors as well as in the return_type from Query.Selectors
-
+        filters = Filter.create_filter_options(query.filters) if query.filters is not None else None
 
         if query.date_search.type == DateSearch.equals:
             results = self.equals_search(query.date_search.values)
+            if filters is not None:
+                for filt in filters["NEO"]:
+                    results = filt.apply(results)
+                
             return results[0:query.number]
 
         if query.date_search.type == DateSearch.between:
             results = self.between_search(query.date_search.values)
+            if filters is not None:
+                for filt in filters["NEO"]:
+                    results = filt.apply(results)
+
             return results[0:query.number]
