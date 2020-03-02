@@ -48,7 +48,7 @@ class NEODatabase(object):
                     "id": row["neo_reference_id"],
                     "name": row["name"], 
                     "diameter_min_km": float(row["estimated_diameter_min_kilometers"]),
-                    "is_hazardous": row["is_potentially_hazardous_asteroid"] == "True",
+                    "is_hazardous": True if row["is_potentially_hazardous_asteroid"] == "True" else False,
                     "orbits": []
                     #"orbit_dates": []
                     }
