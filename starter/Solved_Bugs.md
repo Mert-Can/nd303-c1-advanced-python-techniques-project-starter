@@ -33,3 +33,8 @@ We then set up an `apply` method which applys the filter to NearEarthObjects and
 ### Requirement 4.  
 ***Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers that were hazardous and within X kilometers from Earth.***
 
+We solved this requirements by adding a check for the distance property in the `create_filter_options` method. Since the distance property applies to an Orbital path, we included another key in the defaault dictionary ["ORB"] to hold filters for OrbitalPath Objects.
+
+Furthermore, we added implementation to the `apply` method of the Filter class to filter the Orbital Paths that match the filter criteria and saved the NearEarthObjects, who's Orbital Paths meet the filter criteria, to a list.
+
+Now in the NEOSearcher class, we included implementation to in the `get_objects` method to extract Orbital Path filters and apply to the NearEarthObjects and then return the results.
