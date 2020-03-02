@@ -70,7 +70,7 @@ class Filter(object):
     Options = {
         # TODO: Create a dict of filter name to the NearEarthObject or OrbitalPath property
         "diameter"      : "diameter_min_km",
-        "is_hazardous"  : "is_hazardous",
+        "is_hazardous"  : "is_potentially_hazardous_asteroid",
         "distance"      : "miss_distance_kilometers"
     }
 
@@ -130,6 +130,13 @@ class Filter(object):
         if self.field == "diameter":
             filtered_list = list(filter(
                 lambda neo: Filter.Operators[self.operation](getattr(neo,Filter.Options[self.field]), float(self.value)), results)
+            )
+            return filtered_list
+            
+        if self.field == "is_hazardous":
+            for neo in results:
+                filtered_list = list(filter(
+                lambda neo: Filter.Operators[self.operation](getattr(neo, Filter.Options[self.field]), self.value), results)
             )
             return filtered_list
 
