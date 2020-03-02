@@ -25,6 +25,9 @@ We then set up an `apply` method which applys the filter to NearEarthObjects and
 
 ### Requirement 3.  
 ***Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers that were hazardous.***
+
+`Bug`:  Running the test fails at requirement 3, producing 4 Objects instead of 0. We followed the implemetaion on the previous create filter. This is noticed on `line 138` of the `search.py` file.
+
 ### Requirement 4.  
 ***Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers that were hazardous and within X kilometers from Earth.***
 
