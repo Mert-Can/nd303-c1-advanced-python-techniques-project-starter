@@ -28,6 +28,8 @@ We then set up an `apply` method which applys the filter to NearEarthObjects and
 
 `Bug`:  Running the test fails at requirement 3, producing 4 Objects instead of 0. We followed the implemetaion on the previous create filter. This is noticed on `line 138` of the `search.py` file.
 
+`Solution`: We fixed this by replcaing the filter method on `line 138`, replacing with a loop on the results and applying the filter operation to it. For this solution, on line 137 of the search.py file, we also include a variable is_hazadous, to hold a boolean value that corresponds to the string "Ture" or "False" held by the filter value. We then append NearEarthObjects the meet the filter criteria to a filtered list and return.
+
 ### Requirement 4.  
 ***Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers that were hazardous and within X kilometers from Earth.***
 
