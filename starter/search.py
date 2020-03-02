@@ -115,6 +115,9 @@ class Filter(object):
                 if x[0] in ["diameter", Filter.Options["is_hazardous"]]:
                     defaultdict["NEO"].append(Filter(x[0], NearEarthObject, x[1], x[2]))
                 
+                if x[0] == Filter.Options["distance"]:
+                    defaultdict["ORB"].append(Filter(x[0], OrbitPath, x[1], x[2]))
+                
         return defaultdict
                 
 
@@ -138,6 +141,22 @@ class Filter(object):
             for neo in results:
                 if Filter.Operators[self.operation](neo.is_potentially_hazardous_asteroid, is_hazardous):
                     filtered_list += [neo]
+            return filtered_list
+
+        if self.field == "distance":
+            all_orbits = []
+            for neo in results:
+                for orb in neo.orbits:
+                    all_orbits += [orb]
+            unique_orbits = set()
+            filtered_orbits = []
+            for orbit in all_orbits:
+                date_name = f'{orbit.close_approach_date}.{orbit.neo_name}'
+                if date_name not in unique_orbits:
+                    
+                    if Filter.Operators[self.operation](orbit.miss_distance_kilometers, float(self.value)):
+                        filtered_orbits.append(orbit)
+                        filtered_list += [neo]
             return filtered_list
 
 
@@ -224,6 +243,8 @@ class NEOSearcher(object):
             if filters is not None:
                 for filt in filters["NEO"]:
                     results = filt.apply(results)
+                for filt in filters["ORB"]:
+                    results = filt.apply(results)
                 
             return results[0:query.number]
 
@@ -231,6 +252,8 @@ class NEOSearcher(object):
             results = self.between_search(query.date_search.values)
             if filters is not None:
                 for filt in filters["NEO"]:
+                    results = filt.apply(results)
+                for filt in filters["ORB"]:
                     results = filt.apply(results)
 
             return results[0:query.number]
