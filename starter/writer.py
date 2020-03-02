@@ -1,5 +1,5 @@
 from enum import Enum
-
+import csv
 
 class OutputFormat(Enum):
     """
@@ -38,3 +38,20 @@ class NEOWriter(object):
         # TODO: Using the OutputFormat, how can we organize our 'write' logic for output to stdout vs to csvfile
         # TODO: into instance methods for NEOWriter? Write instance methods that write() can call to do the necessary
         # TODO: output format.
+        if format == OutputFormat.display.value:
+            print("OK")
+            value = list(data[0].__dict__.keys())
+            print (*value, sep=('     :    '))
+            for d in data:
+                print(*d.__dict__.values(), sep=(':    '))
+            return True
+
+        if format == OutputFormat.csv_file.value:
+            print("Writing to csv file ....")
+            keys = list(data[0].__dict__.keys())
+            with open('output.csv', 'w') as f:
+                writer = csv.DictWriter(f, fieldnames=keys)
+                writer.writeheader()
+                for d in data:
+                    writer.writerow(d.__dict__)
+            return True
